@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ingresar · EcoAlerta</title><link rel="stylesheet" href="css/style.css"></head>
+<body><a class="skip" href="#c">Saltar al contenido</a><header id="cab"></header><main id="c" class="w">
+<section class="auth card">
+<h1 id="tt">Ingresar</h1>
+<form id="fi"><label>Correo<input type="email" name="email" autocomplete="email" required></label><label>Contraseña<input type="password" name="password" autocomplete="current-password" required></label><button class="btn">Ingresar</button></form>
+<form id="fr" hidden><label>Nombre<input name="name" maxlength="80" autocomplete="name" required></label><label>Correo<input type="email" name="email" autocomplete="email" required></label><label>Contraseña (mínimo 8 caracteres)<input type="password" name="password" minlength="8" autocomplete="new-password" required></label><button class="btn">Crear cuenta</button></form>
+<p class="cen" id="ol"><a href="#" id="of">¿Olvidaste tu contraseña?</a></p>
+<p class="ok" id="om" hidden>Pide a un administrador que te genere una contraseña temporal. Con ella ingresas y la cambias en «Mis reportes».</p>
+<hr><button class="btn out2" id="sw" type="button">Crear cuenta nueva</button>
+</section></main><footer id="pie"></footer>
+<script src="js/app.js"></script>
+<script>let reg=false;
+function env(f,a){f.onsubmit=async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(f)),b=f.querySelector('button');b.disabled=true;
+try{if(a==='register')await api('api/auth.php?a=register',{json:d});await api('api/auth.php?a=login',{json:d});location='index.html'}catch(x){flash(x.message,'err');b.disabled=false}}}
+env($('#fi'),'login');env($('#fr'),'register');
+$('#sw').onclick=()=>{reg=!reg;$('#fi').hidden=reg;$('#fr').hidden=!reg;$('#ol').hidden=reg;$('#om').hidden=true;$('#tt').textContent=reg?'Crear cuenta':'Ingresar';$('#sw').textContent=reg?'Ya tengo una cuenta':'Crear cuenta nueva'};
+$('#of').onclick=e=>{e.preventDefault();$('#om').hidden=false};
+ready.then(me=>{if(me)location='index.html'});</script></body></html>

@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Estadisticas · EcoAlerta</title><link rel="stylesheet" href="css/style.css"></head>
+<body><a class="skip" href="#c">Saltar al contenido</a><header id="cab"></header><main id="c" class="w">
+<h1>Estadísticas</h1><p>Calculadas con los datos reales registrados.</p><div class="grid" id="k"></div><div id="g"></div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script><script src="js/app.js"></script>
+<script>(async()=>{try{const s=await api('api/extra.php?a=stats');
+[[s.total,'reportes'],[s.solved,'solucionados con evidencia'],[s.participants,'participaciones en actividades']].forEach(([n,t])=>$('#k').append(el('div',{class:'card'},el('b',{class:'big',text:n}),t)));
+if(!s.total)return $('#g').append(el('p',{class:'empty',text:'Aún no hay datos para graficar.'}));
+const mk=(t,cfg)=>{const c=el('canvas');$('#g').append(el('div',{class:'card'},el('h2',{text:t}),c));new Chart(c,cfg)},ent={scales:{y:{beginAtZero:true,ticks:{precision:0}}}};
+mk('Por categoría',{type:'doughnut',data:{labels:s.by_cat.map(x=>x.name),datasets:[{data:s.by_cat.map(x=>+x.n),backgroundColor:s.by_cat.map(x=>x.color)}]}});
+mk('Por estado',{type:'bar',data:{labels:s.by_status.map(x=>ST[x.status]),datasets:[{label:'Reportes',data:s.by_status.map(x=>+x.n),backgroundColor:'#2e8b4f'}]},options:ent});
+mk('Evolución mensual',{type:'line',data:{labels:s.by_month.map(x=>x.m),datasets:[{label:'Reportes',data:s.by_month.map(x=>+x.n),borderColor:'#14532d'}]},options:ent});
+}catch(e){flash(e.message,'err')}})();</script>
+</main><footer id="pie"></footer></body></html>

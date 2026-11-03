@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mapa · EcoAlerta</title><link rel="stylesheet" href="css/style.css"></head>
+<body><a class="skip" href="#c">Saltar al contenido</a><header id="cab"></header><main id="c" class="w">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<h1>Mapa ambiental</h1>
+<form id="f" class="filters"><select name="c" id="c1" aria-label="Categoría"><option value="">Todas las categorías</option></select><select name="s" id="s1" aria-label="Estado"><option value="">Todos los estados</option></select><input name="q" placeholder="Ubicación o título" aria-label="Buscar"><button class="btn">Filtrar</button></form>
+<div id="mapa" style="height:460px"></div><p id="n"></p><div id="lst"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="js/app.js"></script>
+<script>(async()=>{const m=L.map('mapa').setView([4.6,-74.1],6);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(m);const g=L.layerGroup().addTo(m);
+try{(await api('api/extra.php?a=categories')).categories.forEach(c=>$('#c1').append(el('option',{value:c.id,text:c.name})))}catch(e){flash(e.message,'err')}
+PUB.forEach(k=>$('#s1').append(el('option',{value:k,text:ST[k]})));
+async function cargar(){g.clearLayers();$('#lst').replaceChildren();const q=new URLSearchParams(new FormData($('#f')));
+try{const r=(await api('api/reports.php?'+q)).reports;$('#n').textContent=r.length+' reporte(s). Las ubicaciones públicas son aproximadas.';const pts=[];
+if(!r.length)$('#lst').append(el('p',{class:'empty',text:'No hay reportes con esos filtros.'}));
+r.forEach(x=>{$('#lst').append(el('p',{},x.icon+' ',el('a',{href:'reporte.html?id='+x.id,text:x.title}),' ',badge(x.status)));if(x.lat===null)return;
+const mk=L.circleMarker([+x.lat,+x.lng],{radius:9,color:x.status==='solucionado'?'#15803d':'#fff',weight:3,fillColor:x.color,fillOpacity:.9}).addTo(g);
+mk.bindPopup(el('div',{},el('b',{text:x.title}),el('p',{text:x.cat+' · '+ST[x.status]}),el('a',{href:'reporte.html?id='+x.id,text:'Ver ficha completa'})));pts.push([+x.lat,+x.lng])});
+if(pts.length)m.fitBounds(pts,{maxZoom:15,padding:[30,30]})}catch(e){flash(e.message,'err')}}
+$('#f').onsubmit=e=>{e.preventDefault();cargar()};cargar()})();</script>
+</main><footer id="pie"></footer></body></html>

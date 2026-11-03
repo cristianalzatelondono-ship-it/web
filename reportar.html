@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reportar · EcoAlerta</title><link rel="stylesheet" href="css/style.css"></head>
+<body><a class="skip" href="#c">Saltar al contenido</a><header id="cab"></header><main id="c" class="w">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<h1>Reportar un problema</h1>
+<form id="f" class="card" enctype="multipart/form-data" novalidate>
+<label>Título<input name="title" maxlength="120" required></label>
+<label>Categoría<select name="category" id="cat" required><option value="">Elige una</option></select></label>
+<label>Descripción<textarea name="description" rows="5" maxlength="2000" required></textarea></label>
+<label>Fecha<input type="date" name="date" id="dt" required></label>
+<label>Referencia de ubicación (opcional)<input name="location_text" maxlength="160" placeholder="Barrio, calle o punto de referencia"></label>
+<p>Marca el punto en el mapa (opcional):</p><div id="mapa" style="height:300px"></div><input type="hidden" name="lat"><input type="hidden" name="lng">
+<label>Fotografía opcional (JPG, PNG o WebP, máx. 5 MB)<input type="file" name="photo" accept="image/jpeg,image/png,image/webp"></label>
+<label class="chk"><input type="checkbox" name="ok" value="1"> Confirmo que la información es veraz.</label>
+<button class="btn" id="b">Enviar reporte</button></form>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="js/app.js"></script>
+<script>ready.then(async me=>{if(!me)return location='login.html';
+const t=new Date().toISOString().slice(0,10);$('#dt').value=t;$('#dt').max=t;
+(await api('api/extra.php?a=categories')).categories.forEach(c=>$('#cat').append(el('option',{value:c.id,text:c.name})));
+const m=L.map('mapa').setView([4.6,-74.1],6);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(m);let k;const E=$('#f').elements;
+m.on('click',e=>{if(k)k.remove();k=L.marker(e.latlng).addTo(m);E.lat.value=e.latlng.lat.toFixed(6);E.lng.value=e.latlng.lng.toFixed(6)});
+$('#f').onsubmit=async e=>{e.preventDefault();const b=$('#b'),ph=E.photo.files[0];
+if(E.title.value.trim().length<5)return flash('El título debe tener al menos 5 caracteres.','err');
+if(!E.category.value)return flash('Elige una categoría.','err');
+if(E.description.value.trim().length<20)return flash('La descripción debe tener al menos 20 caracteres.','err');
+if(ph&&(!['image/jpeg','image/png','image/webp'].includes(ph.type)||ph.size>5242880))return flash('La foto debe ser JPG, PNG o WebP de máximo 5 MB.','err');
+if(!E.ok.checked)return flash('Debes confirmar que la información es veraz.','err');
+b.disabled=true;b.textContent='Enviando…';
+try{const r=await api('api/reports.php?a=create',{method:'POST',body:new FormData(e.target)});sessionStorage.setItem('f','Reporte enviado. Aparecerá en el mapa cuando un moderador lo verifique.');location='reporte.html?id='+r.id}
+catch(x){flash(x.message,'err');b.disabled=false;b.textContent='Enviar reporte'}}});</script>
+</main><footer id="pie"></footer></body></html>

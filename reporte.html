@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reporte · EcoAlerta</title><link rel="stylesheet" href="css/style.css"></head>
+<body><a class="skip" href="#c">Saltar al contenido</a><header id="cab"></header><main id="c" class="w">
+<div id="r"><p>Cargando…</p></div>
+<script src="js/app.js"></script>
+<script>ready.then(async me=>{const id=new URLSearchParams(location.search).get('id'),R=$('#r');
+async function ver(){let d;try{d=await api('api/reports.php?a=get&id='+encodeURIComponent(id))}catch(e){R.replaceChildren(el('p',{class:'empty',text:e.message}));return}
+const r=d.report;R.replaceChildren(el('h1',{text:r.icon+' '+r.title}),...(r.status==='pendiente'?[el('p',{class:'ok',text:'Este reporte será visible para todos cuando un moderador lo verifique.'})]:[]),el('p',{},'Reporte #'+r.id+' · '+r.cat+' · ',badge(r.status)),
+el('div',{class:'card'},el('p',{text:r.description,style:'white-space:pre-wrap'}),el('p',{text:'📍 '+(r.location_text||'Sin referencia')+(r.lat!==null?' (aprox. '+r.lat+', '+r.lng+')':'')}),el('p',{text:'Fecha: '+r.reported_on}),
+...(r.photo?[el('img',{src:'uploads/'+r.photo,alt:'Foto del reporte',style:'max-width:100%;border-radius:12px'})]:[])),
+el('h2',{text:'Historial de estados'}),el('ul',{},...d.history.map(h=>el('li',{},h.created_at+' · '+(h.old_status?ST[h.old_status]:'—')+' → ',badge(h.new_status),' por '+h.name+(h.note?': '+h.note:'')))),
+el('h2',{text:'Evidencias de seguimiento'}),...(d.evidence.length?d.evidence.map(x=>el('div',{class:'card'},el('p',{text:x.note}),...(x.photo?[el('img',{src:'uploads/'+x.photo,alt:'Evidencia',style:'max-width:100%'})]:[]))):[el('p',{class:'empty',text:'Aún no hay evidencias.'})]));
+if(me&&me.role!=='ciudadano')gestion(r)}
+function gestion(r){const sel=el('select',{name:'status'},...Object.entries(ST).map(([k,v])=>{const o=el('option',{value:k,text:v});if(k===r.status)o.selected=true;return o}));
+const f1=el('form',{class:'card'},el('label',{},'Nuevo estado',sel),el('label',{},'Justificación (obligatoria al rechazar o solucionar)',el('textarea',{name:'note',maxlength:'500'})),el('button',{class:'btn',text:'Cambiar estado'}));
+f1.onsubmit=async e=>{e.preventDefault();try{await api('api/reports.php?a=status',{json:{id:r.id,status:sel.value,note:f1.elements.note.value}});sessionStorage.setItem('f','Estado actualizado.');location.reload()}catch(x){flash(x.message,'err')}};
+const f2=el('form',{class:'card'},el('label',{},'Agregar evidencia',el('textarea',{name:'note',maxlength:'500',required:''})),el('label',{},'Foto (opcional)',el('input',{type:'file',name:'photo',accept:'image/jpeg,image/png,image/webp'})),el('button',{class:'btn',text:'Guardar evidencia'}));
+f2.onsubmit=async e=>{e.preventDefault();const fd=new FormData(f2);fd.append('id',r.id);try{await api('api/reports.php?a=evidence',{method:'POST',body:fd});sessionStorage.setItem('f','Evidencia agregada.');location.reload()}catch(x){flash(x.message,'err')}};
+R.append(el('h2',{text:'Gestión (moderación)'}),el('div',{class:'g2'},f1,f2))}
+ver()});</script>
+</main><footer id="pie"></footer></body></html>
